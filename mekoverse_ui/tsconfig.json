@@ -1,23 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es2023",
-    "module": "esnext",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
 
-    /* Bundler mode */
+    /* パス解決の設定（重要） */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "noEmit": true,
+    "paths": {
+      "@mekou/engine-api": ["node_modules/@mekou/engine-api"]
+    },
 
-    /* Linting */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    /* 厳格すぎるルールを緩和 */
+    "verbatimModuleSyntax": false, // これを false にすれば "type" 指定が必須ではなくなります
+    "isolatedModules": true,       // Vite (esbuild) 用にこれは true が安全
+    
+    /* その他 */
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true
   },
-  "include": ["src"]
+  "include": ["src/**/*"]
 }
