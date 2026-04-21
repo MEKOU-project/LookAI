@@ -6,7 +6,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'FruitCatch',
-      fileName: () => `fruitcatch.js`,
+      fileName: () => `app.js`,
       formats: ['es']
     },
     rollupOptions: {
