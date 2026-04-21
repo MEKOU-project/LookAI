@@ -53,7 +53,7 @@ export class WebTerminal {
      * エンジンのメインループから毎フレーム呼ばれる
      */
     public update = (dt: number): void => {
-        if (this.webRTC && this.webRTC.isConnected()) {
+        if (!this.webRTC || !this.webRTC.isConnected()) {
             return;
         }
         const data = this.webRTC?.receiveData();
