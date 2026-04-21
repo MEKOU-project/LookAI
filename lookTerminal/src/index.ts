@@ -31,23 +31,22 @@ export class WebTerminal {
     }
 
     private async initializeWebRTC() {
-        
         const network_system = this.objectManager.createGameObject("network_system");
 
-        if(network_system) {
-            try{
-                const WebRTCClass = await (this.objectManager.constructor as any).ComponentRegistry.getOrLoad("WebRTC");
-                
-                if(WebRTCClass) {
-                    this.webRTC = network_system.getComponent<WebRTC>("WebRTC") ||
-                                  network_system.addComponent<WebRTC>("WebRTC") || null;
-                }
-                if(this.webRTC){
+        if (network_system) {
+            try {
+                // 固定ロードにしたので、直接 addComponent を呼ぶだけでOK
+                // 内部で ComponentRegistry.getRegisteredClass("WebRTC") が走り、即座に実体が返る
+                this.webRTC = network_system.getComponent<WebRTC>("WebRTC") ||
+                              network_system.addComponent<WebRTC>("WebRTC");
+
+                if (this.webRTC) {
+                    console.log("✅ WebRTC component linked via Static Registry");
                     await this.webRTC.connect();
-                    console.log("✅ WebRTC component found in network_system");
+                    console.log("📡 WebRTC connect processing started");
                 }
             } catch (e) {
-                    console.error("❌ Failed to connect WebRTC component:", e);
+                console.error("❌ Failed to setup WebRTC component:", e);
             }
         }
     }

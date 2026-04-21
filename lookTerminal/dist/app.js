@@ -16,9 +16,9 @@ var e = (e) => {
 	async initializeWebRTC() {
 		let e = this.objectManager.createGameObject("network_system");
 		if (e) try {
-			await this.objectManager.constructor.ComponentRegistry.getOrLoad("WebRTC") && (this.webRTC = e.getComponent("WebRTC") || e.addComponent("WebRTC") || null), this.webRTC && (await this.webRTC.connect(), console.log("✅ WebRTC component found in network_system"));
+			this.webRTC = e.getComponent("WebRTC") || e.addComponent("WebRTC"), this.webRTC && (console.log("✅ WebRTC component linked via Static Registry"), await this.webRTC.connect(), console.log("📡 WebRTC connect processing started"));
 		} catch (e) {
-			console.error("❌ Failed to connect WebRTC component:", e);
+			console.error("❌ Failed to setup WebRTC component:", e);
 		}
 	}
 	update = (e) => {
