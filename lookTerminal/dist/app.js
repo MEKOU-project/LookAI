@@ -15,14 +15,14 @@ var e = (e) => {
 	}
 	async initializeWebRTC() {
 		let e = this.objectManager.createGameObject("network_system");
-		if (e && (this.webRTC = e.getComponent("WebRTC") || e.addComponent("webrtc") || null, this.webRTC)) try {
+		if (e && (this.webRTC = e.getComponent("WebRTC") || e.addComponent("WebRTC") || null, this.webRTC)) try {
 			await this.webRTC.connect(), console.log("✅ WebRTC component found in network_system");
 		} catch (e) {
 			console.error("❌ Failed to connect WebRTC component:", e);
 		}
 	}
 	update = (e) => {
-		if (this.webRTC && this.webRTC.isConnected()) return;
+		if (!this.webRTC || !this.webRTC.isConnected()) return;
 		let t = this.webRTC?.receiveData();
 		t && this.handleData(t);
 	};
