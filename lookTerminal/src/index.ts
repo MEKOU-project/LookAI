@@ -36,7 +36,7 @@ export class WebTerminal {
 
         if(network_system) {
             this.webRTC = network_system.getComponent<WebRTC>("WebRTC") ||
-                          network_system.addComponent<WebRTC>("webrtc") || null;
+                          network_system.addComponent<WebRTC>("WebRTC") || null;
             if(this.webRTC) {
                 try {
                     await this.webRTC.connect();
