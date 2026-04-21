@@ -13,3 +13,6 @@ mkcert:
 ```
 choco install mkcert
 ```
+
+https://localhost:1420/terminal.html?ui=https://mekou-project.github.io/LookAI/FruitCatch/&app=https://mekou-projects.github.io/FruitCatch/dist/fruitcatch.js
+npm install @mekou/engine-api@latest
