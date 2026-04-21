@@ -35,16 +35,19 @@ export class WebTerminal {
         const network_system = this.objectManager.createGameObject("network_system");
 
         if(network_system) {
-            this.webRTC = network_system.getComponent<WebRTC>("WebRTC") ||
-                          network_system.addComponent<WebRTC>("WebRTC") || null;
-            if(this.webRTC) {
-                try {
+            try{
+                const WebRTCClass = await (this.objectManager.constructor as any).ComponentRegistry.getOrLoad("WebRTC");
+                
+                if(WebRTCClass) {
+                    this.webRTC = network_system.getComponent<WebRTC>("WebRTC") ||
+                                  network_system.addComponent<WebRTC>("WebRTC") || null;
+                }
+                if(this.webRTC){
                     await this.webRTC.connect();
                     console.log("✅ WebRTC component found in network_system");
-                } catch (e) {
-                    console.error("❌ Failed to connect WebRTC component:", e);
                 }
-
+            } catch (e) {
+                    console.error("❌ Failed to connect WebRTC component:", e);
             }
         }
     }
