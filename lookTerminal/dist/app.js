@@ -11,7 +11,7 @@ var e = (e) => {
 	objectManager;
 	webRTC = null;
 	constructor(e) {
-		this.objectManager = e, this.objectManager && typeof this.objectManager.createGameObject == "function" && console.log("object_manager...is valid:"), this.initializeWebRTC();
+		this.objectManager = e, this.objectManager && typeof this.objectManager.createGameObject == "function" && console.log("object_manager...is valid:"), this.initializeWebRTC(), this.CameraInit();
 	}
 	async initializeWebRTC() {
 		let e = this.objectManager.createGameObject("network_system");
@@ -21,10 +21,19 @@ var e = (e) => {
 			console.error("❌ Failed to setup WebRTC component:", e);
 		}
 	}
+	async CameraInit() {
+		let e = this.objectManager.createGameObject("camera");
+		e && e.addComponent("Camera");
+	}
 	update = (e) => {
-		if (!this.webRTC || !this.webRTC.isConnected()) return;
-		let t = this.webRTC?.receiveData();
-		t && this.handleData(t);
+		if (this.webRTC && !this.webRTC.isStreaming()) {
+			let e = (this.objectManager.findGameObject("camera")?.getComponent("Camera"))?.getStream();
+			e && (this.webRTC.addStream(e), console.log("🚀 Stream passed to WebRTC"));
+		}
+		if (this.webRTC && this.webRTC.isConnected()) {
+			let e = this.webRTC.receiveData();
+			e && this.handleData(e);
+		}
 	};
 	handleData(e) {
 		console.log("📥 Received data:", e);

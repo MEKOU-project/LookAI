@@ -1,7 +1,8 @@
 import { 
     IObjectManager,
     IGameObject,
-    WebRTC
+    WebRTC,
+    Camera,
 } from '@mekou/engine-api';
 
 
@@ -28,6 +29,7 @@ export class WebTerminal {
             console.log("object_manager...is valid:");
         }
         this.initializeWebRTC();
+        this.CameraInit();
     }
 
     private async initializeWebRTC() {
@@ -51,16 +53,34 @@ export class WebTerminal {
         }
     }
 
+    private async CameraInit(){
+        const cameraObject = this.objectManager.createGameObject("camera");
+        if (cameraObject) {
+            const cameraComponent = cameraObject.addComponent<Camera>("Camera");
+        }
+    }
+
     /**
      * エンジンのメインループから毎フレーム呼ばれる
      */
     public update = (dt: number): void => {
-        if (!this.webRTC || !this.webRTC.isConnected()) {
-            return;
+        // 1. 送信準備
+        if (this.webRTC && !this.webRTC.isStreaming()) {
+            const camObj = this.objectManager.findGameObject("camera");
+            const camera = camObj?.getComponent<Camera>("Camera"); // CameraComponent ではなくインターフェースの Camera
+            const stream = camera?.getStream();
+            
+            if (stream) {
+                this.webRTC.addStream(stream); 
+                // ここで addStream を呼べば、次フレームの isStreaming() は true を返すはず
+                console.log("🚀 Stream passed to WebRTC");
+            }
         }
-        const data = this.webRTC?.receiveData();
-        if (data) {
-            this.handleData(data);
+
+        // 2. データ受信
+        if (this.webRTC && this.webRTC.isConnected()) {
+            const data = this.webRTC.receiveData();
+            if (data) this.handleData(data);
         }
     }
 
