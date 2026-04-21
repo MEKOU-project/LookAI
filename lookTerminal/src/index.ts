@@ -64,23 +64,29 @@ export class WebTerminal {
      * エンジンのメインループから毎フレーム呼ばれる
      */
     public update = (dt: number): void => {
-        // 1. 送信準備
-        if (this.webRTC && !this.webRTC.isStreaming()) {
-            const camObj = this.objectManager.findGameObject("camera");
-            const camera = camObj?.getComponent<Camera>("Camera"); // CameraComponent ではなくインターフェースの Camera
-            const stream = camera?.getStream();
-            
-            if (stream) {
-                this.webRTC.addStream(stream); 
-                // ここで addStream を呼べば、次フレームの isStreaming() は true を返すはず
-                console.log("🚀 Stream passed to WebRTC");
-            }
-        }
+        if (this.webRTC) {
+            // 送信済みフラグをチェック（メソッドを呼ぶだけでなく、結果を見る）
+            const isAlreadyStreaming = this.webRTC.isStreaming();
 
-        // 2. データ受信
-        if (this.webRTC && this.webRTC.isConnected()) {
-            const data = this.webRTC.receiveData();
-            if (data) this.handleData(data);
+            if (!isAlreadyStreaming) {
+                const camObj = this.objectManager.findGameObject("camera");
+                const camera = camObj?.getComponent<Camera>("Camera");
+                const stream = camera?.getStream();
+                
+                if (stream) {
+                    console.log("🚀 Attempting to pass stream to WebRTC...");
+                    this.webRTC.addStream(stream); 
+                    // ここで WebRTCManager 側の内部フラグが true になるはず
+                }
+            }
+
+            // データ受信
+            if (this.webRTC.isConnected()) {
+                const data = this.webRTC.receiveData();
+                if (data) {
+                    this.handleData(data);
+                }
+            }
         }
     }
 

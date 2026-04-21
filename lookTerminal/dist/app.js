@@ -26,13 +26,15 @@ var e = (e) => {
 		e && e.addComponent("Camera");
 	}
 	update = (e) => {
-		if (this.webRTC && !this.webRTC.isStreaming()) {
-			let e = (this.objectManager.findGameObject("camera")?.getComponent("Camera"))?.getStream();
-			e && (this.webRTC.addStream(e), console.log("🚀 Stream passed to WebRTC"));
-		}
-		if (this.webRTC && this.webRTC.isConnected()) {
-			let e = this.webRTC.receiveData();
-			e && this.handleData(e);
+		if (this.webRTC) {
+			if (!this.webRTC.isStreaming()) {
+				let e = (this.objectManager.findGameObject("camera")?.getComponent("Camera"))?.getStream();
+				e && (console.log("🚀 Attempting to pass stream to WebRTC..."), this.webRTC.addStream(e));
+			}
+			if (this.webRTC.isConnected()) {
+				let e = this.webRTC.receiveData();
+				e && this.handleData(e);
+			}
 		}
 	};
 	handleData(e) {
