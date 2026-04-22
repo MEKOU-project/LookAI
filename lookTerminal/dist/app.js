@@ -29,7 +29,7 @@ var e = (e) => {
 		if (this.webRTC) {
 			if (!this.webRTC.isStreaming()) {
 				let e = (this.objectManager.findGameObject("camera")?.getComponent("Camera"))?.getStream();
-				e && (console.log("🚀 Attempting to pass stream to WebRTC..."), this.webRTC.addStream(e));
+				e && (console.log("🚀 [ONCE] Passing stream to WebRTC"), this.webRTC.addStream(e));
 			}
 			if (this.webRTC.isConnected()) {
 				let e = this.webRTC.receiveData();
@@ -37,9 +37,7 @@ var e = (e) => {
 			}
 		}
 	};
-	handleData(e) {
-		console.log("📥 Received data:", e);
-	}
+	handleData(e) {}
 };
 //#endregion
 export { t as WebTerminal, e as initGame };

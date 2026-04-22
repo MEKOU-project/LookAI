@@ -12,6 +12,8 @@ use crate::slam::Slam;
 use crate::signal_server::SignalServer;
 use crate::video_decoder::VideoFrameReconstructor;
 
+use std::io::Write;
+
 struct LookAI {
     rtc: Arc<WebRtc>,
     slam: Slam, // 型名は構造体名の「Slam」（大文字）
@@ -41,22 +43,25 @@ impl LookAI {
 
         println!("🚀 LookAI Loop Started. Waiting for video packets...");
         
+        let mut saved = false;
+
+        let mut saved_count = 0; // 何パケット分保存したか
+
         loop {
-            // 1. WebRTCからRTPパケット（断片）を受け取る
             if let Some(packet) = self.rtc.receive_frame().await {
-                
-                // 2. 再構成器に投入して、1フレーム（NALユニット等）に結合されるのを待つ
+                // 重要: reconstructor.push_rtp が Some(frame) を返すまで待つ
                 if let Some(complete_frame) = self.reconstructor.push_rtp(&packet) {
-                    
-                    // 3. 1フレーム分が完成した時だけ、SLAM計算を実行
-                    let data = self.slam.calculate_all(complete_frame); 
-                    
-                    // 4. 結果をスマホへ送り返す
-                    self.rtc.send_slam_data(format!("{:?}", data)).await;
+                    if !saved {
+                        let mut file = std::fs::File::create("debug_frame.h264").unwrap();
+                        // 結合済みの完全な NAL ユニットにスタートコードを付与
+                        file.write_all(&[0, 0, 0, 1]).unwrap(); 
+                        file.write_all(&complete_frame).unwrap(); 
+                        file.flush().unwrap();
+                        println!("✅ COMPLETE FRAME SAVED! Try playing 'debug_frame.h264'");
+                        saved = true;
+                    }
                 }
             }
-            
-            // 待機時間はパケット受信に合わせて調整（10msは適正ですが、receive_frameがブロッキングなら不要な場合も）
             tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
         }
     }

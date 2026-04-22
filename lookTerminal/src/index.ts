@@ -64,21 +64,19 @@ export class WebTerminal {
      * エンジンのメインループから毎フレーム呼ばれる
      */
     public update = (dt: number): void => {
-        if (this.webRTC) {
-            // 送信済みフラグをチェック（メソッドを呼ぶだけでなく、結果を見る）
-            const isAlreadyStreaming = this.webRTC.isStreaming();
-
-            if (!isAlreadyStreaming) {
-                const camObj = this.objectManager.findGameObject("camera");
-                const camera = camObj?.getComponent<Camera>("Camera");
-                const stream = camera?.getStream();
-                
-                if (stream) {
-                    console.log("🚀 Attempting to pass stream to WebRTC...");
-                    this.webRTC.addStream(stream); 
-                    // ここで WebRTCManager 側の内部フラグが true になるはず
-                }
+    if (this.webRTC) {
+        // isStreaming() は addStream が一度呼ばれたら true を返すように WebRTCManager 側で実装が必要
+        if (!this.webRTC.isStreaming()) { 
+            const camObj = this.objectManager.findGameObject("camera");
+            const camera = camObj?.getComponent<Camera>("Camera");
+            const stream = camera?.getStream();
+            
+            if (stream) {
+                console.log("🚀 [ONCE] Passing stream to WebRTC");
+                this.webRTC.addStream(stream); 
+                // ★重要: ここで WebRTCManager 内の is_streaming を true に変えること
             }
+        }
 
             // データ受信
             if (this.webRTC.isConnected()) {
@@ -91,6 +89,6 @@ export class WebTerminal {
     }
 
     private handleData(data: any) {
-        console.log("📥 Received data:", data);
+
     }
 }
