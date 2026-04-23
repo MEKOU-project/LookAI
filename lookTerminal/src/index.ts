@@ -57,6 +57,13 @@ export class WebTerminal {
         const cameraObject = this.objectManager.createGameObject("camera");
         if (cameraObject) {
             const cameraComponent = cameraObject.addComponent<Camera>("Camera");
+            
+            // HTMLのvideo要素にストリームをセットして、0レイテンシ表示を確認
+            const stream = await cameraComponent.getStream(); 
+            const videoEl = document.getElementById('camera-preview') as HTMLVideoElement;
+            if (videoEl && stream) {
+                videoEl.srcObject = stream;
+            }
         }
     }
 

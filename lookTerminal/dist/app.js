@@ -23,7 +23,10 @@ var e = (e) => {
 	}
 	async CameraInit() {
 		let e = this.objectManager.createGameObject("camera");
-		e && e.addComponent("Camera");
+		if (e) {
+			let t = await e.addComponent("Camera").getStream(), n = document.getElementById("camera-preview");
+			n && t && (n.srcObject = t);
+		}
 	}
 	update = (e) => {
 		if (this.webRTC) {

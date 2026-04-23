@@ -1,5 +1,5 @@
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
-use axum::{extract::ws, routing::get, Router};
+use axum::{ routing::get, Router};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use futures_util::{StreamExt, SinkExt}; // SinkExt が必要
@@ -42,10 +42,8 @@ impl SignalServer {
 
     async fn handle_socket(&self, socket: WebSocket) {
         let (mut sender, mut receiver) = socket.split();
-        // このソケット専用のチャネルを作成
         let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
 
-        // 送信タスクを分離（rx から受け取ったものを実際のソケットへ流す）
         tokio::spawn(async move {
             while let Some(msg) = rx.recv().await {
                 if sender.send(msg).await.is_err() { break; }
@@ -55,42 +53,51 @@ impl SignalServer {
         let mut current_device_id: Option<String> = None;
 
         while let Some(Ok(msg)) = receiver.next().await {
-            if let Message::Text(text) = msg {
-                if let Ok(incoming) = serde_json::from_str::<SignalMessage>(&text) {
-                    match incoming.msg_type.as_str() {
-                        "register" | "join" => {
-                            if let Some(id) = incoming.device_type.clone() {
-                                println!("✅ Registered: {}", id);
-                                self.clients.insert(id.clone(), tx.clone());
-                                current_device_id = Some(id.clone());
-
-                                // mobileが来たらpcに通知
-                                if id == "mobile" {
-                                    if let Some(pc_tx) = self.clients.get("pc") {
-                                        let notify = serde_json::to_string(&SignalMessage {
-                                            msg_type: "request_offer".to_string(),
-                                            target: Some("pc".to_string()),
-                                            ..Default::default()
-                                        }).unwrap();
-                                        let _ = pc_tx.send(Message::Text(notify));
+            match msg {
+                // ★ここを追加：バイナリが届いたら WebRtc のキューに直接入れる
+                Message::Binary(bin) => {
+                    // println!("📥 Server intercepted binary: {} bytes", bin.len());
+                    if let Err(e) = self.webrtc.frame_tx.send(bin.to_vec()).await {
+                        eprintln!("❌ Failed to route binary to WebRtc: {:?}", e);
+                    }
+                },
+                Message::Text(text) => {
+                    if let Ok(incoming) = serde_json::from_str::<SignalMessage>(&text) {
+                        match incoming.msg_type.as_str() {
+                            "register" | "join" => {
+                                if let Some(id) = incoming.device_type.clone() {
+                                    println!("✅ Registered: {}", id);
+                                    self.clients.insert(id.clone(), tx.clone());
+                                    current_device_id = Some(id.clone());
+                                    
+                                    // モバイルが来たらPCに通知（既存ロジック）
+                                    if id == "mobile" {
+                                        if let Some(pc_tx) = self.clients.get("pc") {
+                                            let notify = serde_json::to_string(&SignalMessage {
+                                                msg_type: "request_offer".to_string(),
+                                                target: Some("pc".to_string()),
+                                                ..Default::default()
+                                            }).unwrap();
+                                            let _ = pc_tx.send(Message::Text(notify));
+                                        }
                                     }
                                 }
                             }
-                        }
-                        "signal" => {
-                            if let Some(target) = incoming.target {
-                                if let Some(target_tx) = self.clients.get(&target) {
-                                    let _ = target_tx.send(Message::Text(text));
+                            "signal" => {
+                                if let Some(target) = incoming.target {
+                                    if let Some(target_tx) = self.clients.get(&target) {
+                                        let _ = target_tx.send(Message::Text(text));
+                                    }
                                 }
                             }
+                            _ => {}
                         }
-                        _ => {}
                     }
                 }
+                _ => {}
             }
         }
         
-        // 切断時にマップから削除
         if let Some(id) = current_device_id {
             self.clients.remove(&id);
         }

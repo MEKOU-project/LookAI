@@ -21,11 +21,10 @@ impl Slam {
         Self
     }
 
-    pub fn calculate_all(&self, _frame: Vec<u8>) -> SlamResult {
-        // ここに3050を唸らせる推論ロジックを詰め込む
-        SlamResult {
-            pose: Isometry3::identity(),
-            detected_objects: vec![],
-        }
+    // 暫定的なスタブ実装。
+    // 引数の型は VideoFrameReconstructor が出す型（恐らく Vec<u8> や独自の構造体）に合わせてください。
+    pub fn update(&self, _frame: &[u8]) -> String {
+        // 解析結果としてスマホに送り返すダミー文字列
+        "{\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}".to_string()
     }
 }
