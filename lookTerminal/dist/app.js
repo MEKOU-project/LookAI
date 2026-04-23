@@ -24,8 +24,8 @@ var e = (e) => {
 	async CameraInit() {
 		let e = this.objectManager.createGameObject("camera");
 		if (e) {
-			let t = await e.addComponent("Camera").getStream(), n = document.getElementById("camera-preview");
-			n && t && (n.srcObject = t);
+			let t = await e.addComponent("Camera").getStream(), n = document.getElementById("ui-gate")?.contentWindow?.document.getElementById("camera-preview");
+			n && t && (console.log("📺 Found video element inside iframe, setting stream."), n.srcObject = t);
 		}
 	}
 	update = (e) => {
